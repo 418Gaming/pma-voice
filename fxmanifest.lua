@@ -1,4 +1,6 @@
-game {'gta5'}
+game {'gta5', 'rdr3'}
+
+rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 
 fx_version 'cerulean'
 author 'AvarianKnight'
@@ -58,7 +60,6 @@ convar_category 'PMA-Voice' {
         { "Enable radio animation", "$voice_enableRadioAnim", "CV_INT", "0" },
 	{ "Radio key", "$voice_defaultRadio", "CV_STRING", "LALT" },
 	{ "UI refresh rate", "$voice_uiRefreshRate", "CV_INT", "200" },
-	{ "Enable voice sync (state bags)", "$voice_syncData", "CV_INT", "0" },
 	{ "Allow players to set audio intent", "$voice_allowSetIntent", "CV_INT", "1" },
 	{ "External mumble server address", "$voice_externalAddress", "CV_STRING", "" },
 	{ "External mumble server port", "$voice_externalPort", "CV_INT", "0" },

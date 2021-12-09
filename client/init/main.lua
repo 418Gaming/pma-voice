@@ -16,16 +16,13 @@ callData = {}
 ---@param volume number between 0 and 100
 ---@param volumeType string the volume type (currently radio & call) to set the volume of (opt)
 function setVolume(volume, volumeType)
-	local volume = tonumber(volume)
-	local checkType = type(volume)
-	if checkType ~= 'number' then
-		return error(('setVolume expected type number, got %s'):format(checkType))
-	end
+	type_check({volume, "number"})
+	local volume = volume
 	volume = volume / 100
 	if volumeType then
 		local volumeTbl = volumes[volumeType]
 		if volumeTbl then
-			LocalPlayer.state:set(volumeType, volume, GetConvarInt('voice_syncData', 1) == 1)
+			LocalPlayer.state:set(volumeType, volume, true)
 			volumes[volumeType] = volume
 		else
 			error(('setVolume got a invalid volume type %s'):format(volumeType))
@@ -34,7 +31,7 @@ function setVolume(volume, volumeType)
 		-- _ is here to not mess with global 'type' function
 		for _type, vol in pairs(volumes) do
 			volumes[_type] = volume
-			LocalPlayer.state:set(_type, volume, GetConvarInt('voice_syncData', 1) == 1)
+			LocalPlayer.state:set(_type, volume, true)
 		end
 	end
 end
@@ -62,18 +59,21 @@ end)
 -- o_freq_lo = 348.0
 -- 0_freq_hi = 4900.0
 
--- radio submix
-local radioEffectId = CreateAudioSubmix('Radio')
-SetAudioSubmixEffectRadioFx(radioEffectId, 0)
-SetAudioSubmixEffectParamInt(radioEffectId, 0, GetHashKey('default'), 1)
-AddAudioSubmixOutput(radioEffectId, 0)
 
-local phoneEffectId = CreateAudioSubmix('Phone')
-SetAudioSubmixEffectRadioFx(phoneEffectId, 1)
-SetAudioSubmixEffectParamInt(phoneEffectId, 1, GetHashKey('default'), 1)
-SetAudioSubmixEffectParamFloat(phoneEffectId, 1, GetHashKey('freq_low'), 300.0)
-SetAudioSubmixEffectParamFloat(phoneEffectId, 1, GetHashKey('freq_hi'), 6000.0)
-AddAudioSubmixOutput(phoneEffectId, 1)
+if gameVersion == 'fivem' then
+	-- radio submix
+	radioEffectId = CreateAudioSubmix('Radio')
+	SetAudioSubmixEffectRadioFx(radioEffectId, 0)
+	SetAudioSubmixEffectParamInt(radioEffectId, 0, GetHashKey('default'), 1)
+	AddAudioSubmixOutput(radioEffectId, 0)
+
+	phoneEffectId = CreateAudioSubmix('Phone')
+	SetAudioSubmixEffectRadioFx(phoneEffectId, 1)
+	SetAudioSubmixEffectParamInt(phoneEffectId, 1, GetHashKey('default'), 1)
+	SetAudioSubmixEffectParamFloat(phoneEffectId, 1, GetHashKey('freq_low'), 300.0)
+	SetAudioSubmixEffectParamFloat(phoneEffectId, 1, GetHashKey('freq_hi'), 6000.0)
+	AddAudioSubmixOutput(phoneEffectId, 1)
+end
 
 local submixFunctions = {
 	['radio'] = function(plySource)
@@ -92,11 +92,11 @@ local disableSubmixReset = {}
 ---@param enabled boolean if the players voice is getting activated or deactivated
 ---@param moduleType string the volume & submix to use for the voice.
 function toggleVoice(plySource, enabled, moduleType)
-	if mutedPlayers[source] then return end
+	if mutedPlayers[plySource] then return end
 	logger.verbose('[main] Updating %s to talking: %s with submix %s', plySource, enabled, moduleType)
 	if enabled then
 		MumbleSetVolumeOverrideByServerId(plySource, enabled and volumes[moduleType])
-		if GetConvarInt('voice_enableSubmix', 0) == 1 then
+		if GetConvarInt('voice_enableSubmix', 0) == 1 and gameVersion == 'fivem' then
 			if moduleType then
 				disableSubmixReset[plySource] = true
 				submixFunctions[moduleType](plySource)
@@ -105,7 +105,7 @@ function toggleVoice(plySource, enabled, moduleType)
 			end
 		end
 	else
-		if GetConvarInt('voice_enableSubmix', 0) == 1 then
+		if GetConvarInt('voice_enableSubmix', 0) == 1 and gameVersion == 'fivem' then
 			-- garbage collect it
 			disableSubmixReset[plySource] = nil
 			SetTimeout(250, function()
@@ -205,3 +205,21 @@ CreateThread(function()
 		end
 	end
 end)
+
+
+if gameVersion == 'redm' then
+	CreateThread(function()
+		while true do
+			if IsControlJustPressed(0, 0xA5BDCD3C --[[ Right Bracket ]]) then
+				ExecuteCommand('cycleproximity')
+			end
+			if IsControlJustPressed(0, 0x430593AA --[[ Left Bracket ]]) then
+				ExecuteCommand('+radiotalk')
+			elseif IsControlJustReleased(0, 0x430593AA --[[ Left Bracket ]]) then
+				ExecuteCommand('-radiotalk')
+			end
+
+			Wait(0)
+		end
+	end)
+end

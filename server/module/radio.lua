@@ -21,7 +21,7 @@ function removePlayerFromRadio(source, radioChannel)
 		TriggerClientEvent('pma-voice:removePlayerFromRadio', player, source)
 	end
 	radioData[radioChannel][source] = nil
-	voiceData[source] = voiceData[source] or defaultTable()
+	voiceData[source] = voiceData[source] or defaultTable(source)
 	voiceData[source].radio = 0
 end
 
@@ -99,6 +99,7 @@ function setPlayerRadio(source, _radioChannel)
 		-- changed
 		TriggerClientEvent('pma-voice:clSetPlayerRadio', source, radioChannel)
 	end
+	Player(source).state.radioChannel = radioChannel
 	if radioChannel ~= 0 and plyVoice.radio == 0 then
 		addPlayerToRadio(source, radioChannel)
 	elseif radioChannel == 0 then

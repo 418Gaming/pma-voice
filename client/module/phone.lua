@@ -7,11 +7,11 @@ local function createPhoneThread()
 		local changed = false
 		while callChannel ~= 0 do
 			-- check if they're pressing voice keybinds
-			if NetworkIsPlayerTalking(PlayerId()) and not changed then
+			if MumbleIsPlayerTalking(PlayerId()) and not changed then
 				changed = true
 				playerTargets(radioPressed and radioData or {}, callData)
 				TriggerServerEvent('pma-voice:setTalkingOnCall', true)
-			elseif changed and NetworkIsPlayerTalking(PlayerId()) ~= 1 then
+			elseif changed and MumbleIsPlayerTalking(PlayerId()) ~= 1 then
 				changed = false
 				MumbleClearVoiceTargetPlayers(voiceTarget)
 				TriggerServerEvent('pma-voice:setTalkingOnCall', false)
@@ -51,11 +51,10 @@ RegisterNetEvent('pma-voice:removePlayerFromCall', function(plySource)
 		callData = {}
 		MumbleClearVoiceTargetPlayers(voiceTarget)
 		playerTargets(radioPressed and radioData or {}, callData)
-		LocalPlayer.state:set('callChannel', 0, GetConvarInt('voice_syncData', 1) == 1)
 	else
 		callData[plySource] = nil
 		toggleVoice(plySource, false, 'phone')
-		if NetworkIsPlayerTalking(PlayerId()) then
+		if MumbleIsPlayerTalking(PlayerId()) then
 			MumbleClearVoiceTargetPlayers(voiceTarget)
 			playerTargets(radioPressed and radioData or {}, callData)
 		end
@@ -66,7 +65,6 @@ function setCallChannel(channel)
 	if GetConvarInt('voice_enablePhones', 1) ~= 1 then return end
 	TriggerServerEvent('pma-voice:setPlayerCall', channel)
 	callChannel = channel
-	LocalPlayer.state:set('callChannel', channel, GetConvarInt('voice_syncData', 1) == 1)
 	if GetConvarInt('voice_enableUi', 1) == 1 then
 		SendNUIMessage({
 			callInfo = channel
@@ -91,6 +89,5 @@ end)
 RegisterNetEvent('pma-voice:clSetPlayerCall', function(_callChannel)
 	if GetConvarInt('voice_enablePhones', 1) ~= 1 then return end
 	callChannel = _callChannel
-	LocalPlayer.state:set('callChannel', _callChannel, GetConvarInt('voice_syncData', 1) == 1)
 	createPhoneThread()
 end)
